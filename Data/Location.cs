@@ -58,4 +58,20 @@ public class Location
     {
         get { return new Location("Forest"); }
     }
+
+    public int index
+    {
+        get
+        {
+            for(int i = 0; i < LocationNames.Length; i++) {
+                if (Name == LocationNames[i])
+                    return i;
+            }
+            Debug.LogError("Unknown location name. BG1");
+            return -1;
+        }
+    }
+
+    public static string[] LocationNames { get; set; }
+
 }

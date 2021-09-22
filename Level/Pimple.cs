@@ -88,7 +88,13 @@ public class Pimple : Interactable
             Camera = Camera.main;
 
         if (paintOnStart)
-            spriteRenderer.color = popit.Color;
+            StartCoroutine(LatePaint());
+    }
+
+    private IEnumerator LatePaint()
+    {
+        yield return new WaitForEndOfFrame();
+        spriteRenderer.color = popit.Color;
     }
 
     public void Paint(Color color)

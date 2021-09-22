@@ -1,17 +1,12 @@
-using UnityEngine;
-using UnityEngine.Advertisements;
-using System;
 using GoogleMobileAds.Api;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
-public class Ads : MonoBehaviour, IUnityAdsListener
+public class AdmobRewardedAds : MonoBehaviour
 {
     const string testRewardedId = "ca-app-pub-3940256099942544/5224354917";
-
-    private static Ads self;
-
-    public static bool NoAds { private set; get; }
-
-    const string game_id = "4191276";
 
     [SerializeField]
     private bool useTestAdmobId = true;
@@ -22,43 +17,18 @@ public class Ads : MonoBehaviour, IUnityAdsListener
     private RewardedAd goldChestAd;
     private RewardedAd addHpAd;
     private RewardedAd optionalChestAd;
+    private RewardedInterstitialAd interstitialAd;
 
     private bool success;
     private bool unmuteMusic;
+    private bool reloadingAdmob;
+    private bool needToReload;
     private Interactable.Mode cache;
-   
 
-    public void Init()
-    {
-        if (self != null)
-            return;
-
-        self = this;
-        DontDestroyOnLoad(gameObject);
-
-        //UnityInitialize();
-        AdmobInitialize();
-    }
-
-    public static void ShowVideo(Action OnSuccessView, Action OnSkipOrFail)
-    {
-        UnityShow(OnSuccessView, OnSkipOrFail);
-    }
-
-    public static void ShowVideo(Action OnSuccessView, Action OnSkipOrFail, RewardedType type)
-    {
-        self.OnSuccess = OnSuccessView;
-        self.OnSkipOrFail = OnSkipOrFail;
-        self.AdmobShow(type);
-    }
-
-    #region Admob code
-
-    private void AdmobInitialize()
+    public void Initialize()
     {
         RequestConfiguration requestConfiguration = new RequestConfiguration.Builder()
-        .SetTagForChildDirectedTreatment(TagForChildDirectedTreatment.True)
-        .SetMaxAdContentRating(MaxAdContentRating.G)
+        .SetMaxAdContentRating(MaxAdContentRating.PG)
         .build();
 
         MobileAds.SetRequestConfiguration(requestConfiguration);
@@ -67,15 +37,27 @@ public class Ads : MonoBehaviour, IUnityAdsListener
         UpdateRewardedObjects();
     }
 
+    private void HandlePaidEvent(object sender, AdValueEventArgs args)
+    {
+        success = true;
+        OnSuccess();
+    }
+
     private void UpdateRewardedObjects()
     {
         goldChestAd = CreateAndLoadRewardedAd(RewardedType.goldChest);
         addHpAd = CreateAndLoadRewardedAd(RewardedType.addHp);
         optionalChestAd = CreateAndLoadRewardedAd(RewardedType.optionalSilverChest);
+
+        if (needToReload && !reloadingAdmob)
+            ReloadAdmob();
     }
 
-    private void AdmobShow(RewardedType type)
+    public void ShowAds(Action onSuccess, Action onSkip, RewardedType type)
     {
+        OnSuccess = onSuccess;
+        OnSkipOrFail = onSkip;
+
         success = false;
         if (type == RewardedType.goldChest) {
             if (goldChestAd.IsLoaded())
@@ -89,7 +71,9 @@ public class Ads : MonoBehaviour, IUnityAdsListener
             if (optionalChestAd.IsLoaded())
                 optionalChestAd.Show();
         }
+
     }
+
 
     public RewardedAd CreateAndLoadRewardedAd(RewardedType type)
     {
@@ -116,7 +100,20 @@ public class Ads : MonoBehaviour, IUnityAdsListener
 
         AdRequest request = new AdRequest.Builder().Build();
         rewardedAd.LoadAd(request);
+
+        if (!rewardedAd.IsLoaded())
+            needToReload = true;
+
         return rewardedAd;
+    }
+
+    private void ReloadAdmob()
+    {
+        reloadingAdmob = true;
+        needToReload = false;
+        Initialize();
+        if (needToReload)
+            Debug.LogError("ads not ready");
     }
 
     private void HandleRewardedAdOpening(object sender, EventArgs e)
@@ -125,7 +122,7 @@ public class Ads : MonoBehaviour, IUnityAdsListener
             BackMusic.self.Audio.mute = true;
             unmuteMusic = true;
         }
-        self.cache = Interactable.CurrentMode;
+        cache = Interactable.CurrentMode;
         Interactable.CurrentMode = Interactable.Mode.none;
     }
 
@@ -135,7 +132,7 @@ public class Ads : MonoBehaviour, IUnityAdsListener
             BackMusic.self.Audio.mute = false;
             unmuteMusic = false;
         }
-        Interactable.CurrentMode = self.cache;
+        Interactable.CurrentMode = cache;
 
         if (!success)
             OnSkipOrFail?.Invoke();
@@ -144,65 +141,8 @@ public class Ads : MonoBehaviour, IUnityAdsListener
 
     private void HandleUserEarnedReward(object sender, Reward e)
     {
+        MetaSceneDate.GameData.InterstitialStep--;
         success = true;
         OnSuccess();
     }
-
-    public enum RewardedType
-    {
-        goldChest,
-        addHp,
-        optionalSilverChest
-    }
-
-
-    #endregion
-
-
-    #region Unity code
-    private void UnityInitialize()
-    {
-        if (Advertisement.isSupported) {
-            Advertisement.Initialize(game_id, false);
-            Advertisement.AddListener(this);
-        }
-        else
-            Debug.LogError("Ads not suported. by Gleb1000");
-    }
-
-    private static void UnityShow(Action OnSuccessView, Action OnSkipOrFail)
-    {
-        if (Advertisement.IsReady()) {
-            Interactable.Mode cache = Interactable.CurrentMode;
-            Interactable.CurrentMode = Interactable.Mode.none;
-            Advertisement.Show("rewardedVideo");
-            self.OnSuccess = OnSuccessView;
-            self.OnSkipOrFail = OnSkipOrFail;
-            Interactable.CurrentMode = cache;
-        }
-    }
-
-    public void OnUnityAdsDidError(string message)
-    {
-        NoAds = true;
-    }
-
-    public void OnUnityAdsDidFinish(string placementId, ShowResult showResult)
-    {
-        if (showResult == ShowResult.Finished)
-            OnSuccess();
-        else OnSkipOrFail?.Invoke();
-    }
-
-    public void OnUnityAdsDidStart(string placementId)
-    {
-        Debug.Log("video started");
-    }
-
-    public void OnUnityAdsReady(string placementId)
-    {
-        NoAds = false;
-    }
-
-    #endregion
 }

@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using System;
 
 public class CurrentPoint : Interactable
 {
@@ -11,7 +12,7 @@ public class CurrentPoint : Interactable
     {
         get { return Self.transform.localPosition.y; }
     }
-
+    
     [SerializeField]
     private int startHealth;
     [SerializeField]
@@ -19,9 +20,13 @@ public class CurrentPoint : Interactable
     [SerializeField]
     private TextMeshProUGUI stars;
     [SerializeField]
+    private InterstitialAdsManager interstitialAds;
+    [SerializeField]
     private new Transform camera;
     [SerializeField]
     private ChengeLocation goToNextLocation;
+    [SerializeField]
+    private Guider[] guiders;
 
     private bool moving;
     private bool ready;
@@ -32,8 +37,10 @@ public class CurrentPoint : Interactable
         base.Start();
 
         Self = this;
-
+        
         Interactable.CurrentMode = Mode.game;
+
+        interstitialAds.Init();
 
         spriteRenderer = GetComponent<SpriteRenderer>();
         
@@ -58,6 +65,8 @@ public class CurrentPoint : Interactable
         LevelBar.Self.Init();
         ReviewButton.self.Init();
         healthShower.Init();
+        foreach (Guider guider in guiders)
+            guider.Init();
 
         StartCoroutine(Ready());
         StartCoroutine(LateUpdateCompliteLevels());
@@ -139,6 +148,7 @@ public class CurrentPoint : Interactable
             MetaSceneDate.OptionalLevel = false;
             OldLevelButton.Selected = null;
             StartLevelMenu.self.Open();
+            click?.Invoke();
         }
     }
     
@@ -156,10 +166,12 @@ public class CurrentPoint : Interactable
 
     public static void StartLevel()
     {
+        MetaSceneDate.GameData.InterstitialStep++;
         MetaSceneDate.Started = true;
         MetaSceneDate.GameData.CurrentLocation.PointPos = Self.transform.position;
         MetaSceneDate.GameData.CurrentLocation.CamPos = Self.camera.position;
         MetaSceneDate.SaveData();
+        MetaSceneDate.InShop = false;
         SceneManager.LoadScene(MetaSceneDate.buttle_level_name);
     }
 
@@ -174,9 +186,5 @@ public class CurrentPoint : Interactable
         gameObject.SetActive(false);
     }
 
-    private void OnApplicationQuit()
-    {
-        MetaSceneDate.GameData.CurrentLocation.PointPos = transform.position;
-        MetaSceneDate.SaveData();
-    }
+    public event Action click;
 }

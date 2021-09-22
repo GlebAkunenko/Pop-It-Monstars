@@ -27,6 +27,7 @@ public class ChengeLocation : MonoBehaviour
     {
         CurrentPoint.Self.SaveCamPosition();
         MetaSceneDate.GameData.LocationName = locationName;
+        MetaSceneDate.SaveData();
         SceneManager.LoadScene(locationName);
     }
 }

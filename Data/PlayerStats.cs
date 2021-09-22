@@ -6,8 +6,18 @@ using UnityEngine;
 [Serializable]
 public class PlayerStats
 {
-    public int Money { get; set; }
     public int AmountDamage { get; set; }
+
+    private int money;
+    public int Money
+    {
+        get { return money; }
+        set
+        {
+            money = value;
+            OnMoneyChange?.Invoke(Money);
+        }
+    }
 
     private int experience;
     public int Experience
@@ -64,7 +74,7 @@ public class PlayerStats
     {
         this.level = level;
         this.experience = experience;
-        this.Money = money;
+        this.money = money;
         this.healthPoints = healthPoints;
         this.AmountDamage = 0;
     }
@@ -75,6 +85,8 @@ public class PlayerStats
     public event Action<int> OnExperienceChange;
     [field: NonSerialized]
     public event Action<int> OnHealthPointsChange;
+    [field: NonSerialized]
+    public event Action<int> OnMoneyChange;
 
 
     public int MaxExperience

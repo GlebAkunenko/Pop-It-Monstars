@@ -44,10 +44,12 @@ public class ReviewMonster : Popit
         //    StartCoroutine(ReviewWindowOpening());
 
         Application.OpenURL("https://play.google.com/store/apps/details?id=com.JoppaGames");
+        MetaSceneDate.OptionsData.Reviewed = true;
     }
 
     public void GoBack()
     {
+        MetaSceneDate.SaveData();
         SceneManager.LoadScene(MetaSceneDate.GameData.CurrentLocation.Name);
     }
 
@@ -73,7 +75,6 @@ public class ReviewMonster : Popit
         }
 
         MetaSceneDate.OptionsData.Reviewed = true;
-        MetaSceneDate.SaveData();
         startOpen = false;
     }
 }

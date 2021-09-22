@@ -7,12 +7,12 @@ public class DropItem : MonoBehaviour
 {
     private Animator anim;
 
-    private int state = 0;
+    protected int state = 0;
 
     [SerializeField]
-    private Type type;
+    protected Type type;
 
-    private void Start()
+    protected void Start()
     {
         anim = GetComponent<Animator>();
         anim.SetBool("hp", type == Type.healthPoint);
@@ -23,7 +23,7 @@ public class DropItem : MonoBehaviour
         state++;
     }
 
-    private void Update()
+    protected void Update()
     {
         if (Input.touchCount > 0 && state == 1) {
             state++;
@@ -31,7 +31,7 @@ public class DropItem : MonoBehaviour
         }
     }
 
-    public void Exit()
+    public virtual void Exit()
     {
         if (type == Type.healthPoint) {
             MetaSceneDate.Player.HealthPoints++;
@@ -44,6 +44,7 @@ public class DropItem : MonoBehaviour
     public enum Type
     {
         healthPoint,
+        money,
         other
     }
 

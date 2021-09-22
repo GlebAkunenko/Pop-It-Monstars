@@ -16,6 +16,12 @@ public class LevelController : MonoBehaviour
 
     [SerializeField]
     private Transform spawnTarget;
+    [SerializeField]
+    private Transform leftTarget;
+    [SerializeField]
+    private Transform rightTarget;
+    [SerializeField]
+    private Transform middleTarget;
 
     private new Camera camera;
     public Camera Camera { get => camera; set => camera = value; }
@@ -95,6 +101,10 @@ public class LevelController : MonoBehaviour
         }
     }
 
+    public Transform LeftTarget { get => leftTarget; set => leftTarget = value; }
+    public Transform RightTarget { get => rightTarget; set => rightTarget = value; }
+    public Transform MiddleTarget { get => middleTarget; set => middleTarget = value; }
+
     private void Start()
     {
         Self = this;
@@ -106,6 +116,7 @@ public class LevelController : MonoBehaviour
             star.fillAmount = 0;
 
         Interactable.CurrentMode = Interactable.Mode.game;
+        Monster.UsedColors.Clear();
 
         FirebaseAnalytics.LogEvent(FirebaseAnalytics.EventLevelStart,
             new Parameter(FirebaseAnalytics.ParameterLevelName, MetaSceneDate.AnaliticsLevelName));
@@ -158,15 +169,32 @@ public class LevelController : MonoBehaviour
 
         time_limit = monsterData.Time;
 
+        Interactable.CurrentMode = Interactable.Mode.none;
+
         GameObject o = Instantiate(monsterData.Monster, spawnTarget.position, Quaternion.identity);
         Monster monster = o.GetComponentInChildren<Monster>();
 
-        monster.Health = monsterData.Health;
-        monster.Paint(monsterData.Color);
+        Color monsterColor = monsterData.Color;
+        if (monsterData.AutoColor || MetaSceneDate.LevelData.AutoColored)
+            monsterColor = monster.GetAutoColor(MetaSceneDate.Level_id - 1);
+
+        ParticalMonster particalMonster = monster as ParticalMonster;
+        if (particalMonster == null) {
+            monster.Health = monsterData.Health;
+            monster.Paint(monsterColor);
+            ValueShower.Monster.ChangeFrame(monsterData.Health);
+        }
+        else {
+            particalMonster.Paint(monsterColor);
+            particalMonster.Health = particalMonster.MiniMonsters.Length;
+            ValueShower.Monster.ChangeFrame(particalMonster.MiniMonsters.Length);
+        }
+
+        Monster.UsedColors.Add(monsterColor);
+        
         monster.transform.localScale = Vector3.zero;
         currentMonterAnim = monster.GetComponent<Animator>();
 
-        ValueShower.Monster.ChangeFrame(monsterData.Health);
 
         skipButton.onClick.RemoveAllListeners();
         skipButton.onClick.AddListener(() => { monster.Kill(); });

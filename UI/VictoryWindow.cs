@@ -80,11 +80,7 @@ public class VictoryWindow : Window
                 StartCoroutine(AddingExperience());
                 endExperience = MetaSceneDate.Player.Experience + MetaSceneDate.LevelData.Experience;
 
-                if (!MetaSceneDate.OptionalLevel) {
-                    silverChest.Spawn();
-                    silverChest.CanOpen = true;
-                }
-                else {
+                if (MetaSceneDate.OptionalLevel) {
                     optionalExit.Play();
                     exit.OnClick.AddListener(() => {
                         SceneManager.LoadScene(MetaSceneDate.GameData.CurrentLocation.Name);
@@ -122,12 +118,20 @@ public class VictoryWindow : Window
         if (!MetaSceneDate.OptionalLevel) {
             goldChest.CanOpen = true;
             goldChest.Spawn();
+            StartCoroutine(SilverChestSpawn());
         }
         else {
             optionalAdsSilverChest.CanOpen = true;
             optionalAdsSilverChest.Spawn();
         }
         NextStar();
+    }
+
+    private IEnumerator SilverChestSpawn()
+    {
+        yield return new WaitForSeconds(0.5f);
+        silverChest.Spawn();
+        silverChest.CanOpen = true;
     }
 
     private IEnumerator AddingExperience()

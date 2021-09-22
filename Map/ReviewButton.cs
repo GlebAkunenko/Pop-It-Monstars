@@ -29,18 +29,16 @@ public class ReviewButton : PopButton
 
     public void SpawnHere(Vector3 position)
     {
-        if (MetaSceneDate.OptionsData.Reviewed)
-            return;
-
         gameObject.SetActive(true);
         transform.position = position;
         MetaSceneDate.GameData.CurrentLocation.ReviewPos = position;
-        GetComponent<SpriteRenderer>().sprite = sad;
+        GetComponent<SpriteRenderer>().sprite = MetaSceneDate.OptionsData.Reviewed ? happy : sad;
     }
 
     public void Click()
     {
         CurrentPoint.Self.SavePosition();
+        CurrentPoint.Self.SaveCamPosition();
         SceneManager.LoadScene(MetaSceneDate.review_scene_name);
     }
 

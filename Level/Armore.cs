@@ -12,15 +12,25 @@ public class Armore : Popit
     private void Start()
     {
         anim = GetComponent<Animation>();
+        DisableColliders();
+    }
+
+    protected void DisableColliders()
+    {
         foreach (Collider2D coll in protectedColliders)
             coll.enabled = false;
     }
 
     protected override void OnFull()
     {
+        EnableColliders();
+        anim.Play();
+    }
+
+    protected void EnableColliders()
+    {
         foreach (Collider2D coll in protectedColliders)
             coll.enabled = true;
-        anim.Play();
     }
 
     public void Remove()

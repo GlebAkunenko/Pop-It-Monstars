@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -17,6 +18,23 @@ public class ChestButtonLevel : Popit
     [SerializeField]
     private Animation anim;
 
+    [SerializeField]
+    private ChestButtonImage[] components;
+
+    private ChestLoot loot;
+
+    private void Start()
+    {
+        foreach(ChestButtonImage c in components) {
+            if (c.Location == MetaSceneDate.GameData.LocationName) {
+                c.gameObject.SetActive(true);
+                loot = c.Loot;
+            }
+            else
+                c.gameObject.SetActive(false);
+        }
+    }
+
     public void Spawn()
     {
         anim.Play();
@@ -27,9 +45,9 @@ public class ChestButtonLevel : Popit
         if (CanOpen) {
             if (adsChest) {
                 if (gold)
-                    Ads.ShowVideo(() => { OpenChest(); MetaSceneDate.Statistics.AdsChest++; }, OnFailAds, Ads.RewardedType.goldChest);
+                    Ads.ShowVideo(() => { OpenChest(); MetaSceneDate.Statistics.AdsChest++; }, OnFailAds, RewardedType.goldChest);
                 else
-                    Ads.ShowVideo(() => { OpenChest(); MetaSceneDate.Statistics.AdsChest++; }, OnFailAds, Ads.RewardedType.optionalSilverChest);
+                    Ads.ShowVideo(() => { OpenChest(); MetaSceneDate.Statistics.AdsChest++; }, OnFailAds, RewardedType.optionalSilverChest);
             }
             else OpenChest();
         }
@@ -39,7 +57,7 @@ public class ChestButtonLevel : Popit
 
     private void OpenChest()
     {
-        MetaSceneDate.GoldChest = gold;
+        MetaSceneDate.ChestLoot = loot;
         VictoryWindow.self.SaveExperiance();
         SceneManager.LoadScene(chest_open_scene_name);
     }
@@ -48,6 +66,7 @@ public class ChestButtonLevel : Popit
     {
         UpdatePimples();
     }
+
 
 
 }

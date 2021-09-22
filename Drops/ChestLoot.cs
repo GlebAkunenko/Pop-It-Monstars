@@ -7,16 +7,41 @@ using UnityEngine;
 public class ChestLoot : ScriptableObject
 {
     [SerializeField]
+    private Chest.Type chestModel;
+
+    [SerializeField]
     private int maxItems;
 
     [SerializeField]
+    private int minMoney;
+    [SerializeField]
+    private int maxMoney;
+
+    [SerializeField]
     private AbstractGiveHpStrategy giveHPStrategy;
+
+    [SerializeField]
+    private int locationIndex;
+    [SerializeField]
+    private bool goldAnimation;
+    [SerializeField]
+    private SpecialChestAnimation specialAnimationIndex;
 
     [SerializeField]
     private GameObject healthPointPrefab;
 
     [SerializeField]
     private Loot[] loots;
+
+    public Chest.Type ChestModel { get => chestModel; set => chestModel = value; }
+    public int LocationIndex { get => locationIndex; set => locationIndex = value; }
+    public bool GoldAnimation { get => goldAnimation; set => goldAnimation = value; }
+    public SpecialChestAnimation SpecialAnimationIndex { get => specialAnimationIndex; set => specialAnimationIndex = value; }
+
+    public int GenerateRandomMoney()
+    {
+        return Random.Range(minMoney, maxMoney + 1);
+    }
 
     public List<GameObject> Unpack()
     {

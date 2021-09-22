@@ -19,6 +19,11 @@ public class LoseWindow : Window
     [SerializeField]
     private HealthShower healthShower;
 
+    [SerializeField]
+    private ButtonGuider hpGuider;
+    [SerializeField]
+    private ButtonGuider hpAdsGuider;
+
     private bool adsStarted;
 
     private void Start()
@@ -30,6 +35,9 @@ public class LoseWindow : Window
             addHealthByAds.gameObject.SetActive(false);
 
         anim = GetComponent<Animator>();
+
+        hpGuider.Init();
+        hpAdsGuider.Init();
     }
 
     public void Open()
@@ -45,6 +53,13 @@ public class LoseWindow : Window
         exitButton.OnClick.AddListener(Exit);
         addHealthByAds.OnClick.AddListener(ClickToAds);
         addHealthByCoin.OnClick.AddListener(AddLifeByCoin);
+
+        if (MetaSceneDate.Player.HealthPoints > 0) {
+            if (hpGuider != null) hpGuider.StartGuide();
+        }
+        else {
+            if (hpAdsGuider != null) hpAdsGuider.StartGuide();
+        }
 
         MetaSceneDate.Win = false;
         adsStarted = false;
@@ -73,7 +88,7 @@ public class LoseWindow : Window
     private void ClickToAds()
     {
         if (!adsStarted)
-            Ads.ShowVideo(AddLifeByAds, () => { adsStarted = false; }, Ads.RewardedType.addHp);
+            Ads.ShowVideo(AddLifeByAds, () => { adsStarted = false; }, RewardedType.addHp);
         adsStarted = true;
     }
 
